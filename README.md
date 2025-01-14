@@ -13,7 +13,6 @@
       <c>
         Front-end Code:
         <ul>
-          <li> Set-up base app
           <li> set-up data share
           <li> set-up usr portals
         </ul>
@@ -49,6 +48,7 @@
   </ul>
   <h4>completed:</h4>
   <ul>
+    <li> Set-up base app
   </ul>
   </body>
 </HTML>
