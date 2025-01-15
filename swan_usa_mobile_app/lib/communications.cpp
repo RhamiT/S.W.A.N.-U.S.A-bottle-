@@ -26,7 +26,110 @@
 #include <vector>
 
 // TODO - go back and implement defensive msr for err
+// Helper functions appart .h file
 
+vector<string> split(string str)
+{
+    char del[] = {' ', '_', '-', ','};
+    vector<string> splittedStr;
+    string section = "";
+    for (char c : str)
+    {
+        if ((c == del[0] || c == del[1] || c == del[2] || c == del[3]) && section != "")
+        {
+            splittedStr.push_back(section);
+            section = "";
+            continue;
+        }
+        section += c;
+    }
+    splittedStr.push_back(section);
+    return splittedStr;
+}
+string stringToLower(string str)
+{
+    string processStr = "";
+    for (char c : str)
+    {
+        if (c >= 65 && c <= 90) // capitol letter
+        {
+            processStr += char(c + 32);
+        }
+        else
+        {
+            processStr += c;
+        }
+    }
+    return processStr;
+}
+string dataProcessID(string id)
+{
+    /*
+        "source_function"
+        source = bvg, btl
+        function = lvl,id || battery
+
+        user must put in valid source entry w\out regarding capitalization (beverage,bvg,ultrasonic, || bottle,btl)
+        user must put in valid function w\out regarding capitalization (level,lvl,id,identification || battery)
+        these can be in any order:
+            -source function,source-function,source_function,etc
+            -function source,function-source,function_source,etc
+        this function then takes this input and generates the above accepted output
+    */
+    string processedId = stringToLower(id);
+    vector<string> sep = split(processedId);
+
+    string part1 = "";
+    string part2 = "";
+
+    for (string s : sep)
+    {
+        if (s == "bvg" || s == "beverage" || s == "ultrasonic" || s == "ls" || s == "lightsensor")
+        {
+            part1 = "bvg";
+        }
+        else if (s == "btl" || s == "bottle")
+        {
+            part1 = "btl";
+        }
+        else if (s == "btr" || s == "battery" || s == "charge" || s == "chrg")
+        {
+            part2 = "btr";
+        }
+        else if (s == "lvl" || s == "level")
+        {
+            part2 = "lvl";
+        }
+        else if (s == "id" || s == "identification")
+        {
+            part2 = "id";
+        }
+        else
+        {
+            cerr << "ERR: " << s << " is an invalid value! aborting please try again" << endl;
+        }
+    }
+
+    if (part1 == "bvg")
+    {
+        if (part2 == "btr")
+        {
+            cerr << "ERR: mismatch between source type and function" << endl;
+        }
+    }
+    else if (part1 == "btl")
+    {
+        if (part2 != "btr")
+        {
+            cerr << "ERR: mismatch between source type and function" << endl;
+        }
+    }
+
+    processedId = part1 + "_" + part2;
+    return processedId;
+}
+
+// .h functions
 void fileCreator::entry(string id, string value)
 {
     uint8_t type = 0; // 0 == none, 1 == bvg, 2 == bottle
@@ -129,146 +232,22 @@ void fileCreator::entry(string id, double value)
         break;
     };
 }
-string fileCreator::genJson(string id, string value)
+string fileCreator::genJson()
 {
-
-    return "";
-}
-string genItems()
-{
-}
-string dataProcessID(string id)
-{
-    /*
-        "source_function"
-        source = bvg, btl
-        function = lvl,id || battery
-
-        user must put in valid source entry w\out regarding capitalization (beverage,bvg || bottle,btl)
-        user must put in valid function w\out regarding capitalization (level,lvl,id,identification || battery)
-        these can be in any order:
-            -source function,source-function,source_function,etc
-            -function source,function-source,function_source,etc
-        this function then takes this input and generates the above accepted output
-    */
-    string processedId = stringToLower(id);
-    vector<string> sep = split(processedId);
-
-    string part1 = "";
-    string part2 = "";
-    for (string s : sep)
+    string bvg_content = "";
+    string btl_content = "";
+    // bvg data
+    bvg_content += "bvg : {";
+    for (auto &value : bvg)
     {
-        if (s == "bvg" || s == "beverage")
-        {
-            if (part1 == "")
-            {
-                part1 = "bvg_";
-            }
-            else
-            {
-                cerr << "ERR: source type already defined try again";
-            }
-        }
-        else if (s == "btl" || s == "bottle")
-        {
-            if (part1 == "")
-            {
-                part1 = "btl_";
-            }
-            else
-            {
-                cerr << "ERR: source type already defined try again";
-            }
-        }
-        else if (s == "level" || s == "lvl")
-        {
-            if (part2 == "")
-            {
-                part2 = "lvl";
-            }
-            else
-            {
-                cerr << "ERR: function has already been defined" << endl;
-            }
-        }
-        else if (s == "id" || s == "identification" || s == "identifier")
-        {
-            if (part2 == "")
-            {
-                part2 = "id";
-            }
-            else
-            {
-                cerr << "ERR: function has already been defined" << endl;
-            }
-        }
-        else if (s == "battery" || s == "btr")
-        {
-            if (part2 == "")
-            {
-                part2 = "btr";
-            }
-            else
-            {
-                cerr << "ERR: function has already been defined" << endl;
-            }
-        }
+        bvg_content += value.first + " : " + value.second + ", ";
     }
-
-    if (part1 == "bvg")
+    bvg_content += "},\n";
+    btl_content += "btl : {";
+    for (auto &value : bottle)
     {
-        if (part2 == "btr")
-        {
-            cerr << "ERR: mismatch between source type and function" << endl;
-        }
+        btl_content += value.first + " : " + value.second + ", ";
     }
-    else if (part1 == "btl")
-    {
-        if (part2 != "btr")
-        {
-            cerr << "ERR: mismatch between source type and function" << endl;
-        }
-    }
-
-    processedId = part1 + part2;
-
-    return processedId;
-}
-vector<string> split(string str)
-{
-    char del[] = {' ', '_', '-', ','};
-    vector<string> splittedStr;
-    string section = "";
-    for (char c : str)
-    {
-        if ((c == del[0] || c == del[1] || c == del[2] || c == del[3]) && section != "")
-        {
-            splittedStr.push_back(section);
-            section = "";
-        }
-        section += c;
-    }
-    return splittedStr;
-}
-string stringToLower(string str)
-{
-    string processStr = "";
-    for (char c : str)
-    {
-        if (c >= 65 && c <= 90) // capitol letter
-        {
-            processStr += char(c + 32);
-        }
-        else
-        {
-            processStr += c;
-        }
-    }
-    return processStr;
-}
-
-int main(int argc, char **argv)
-{
-
-    return 0;
+    btl_content += "},\n";
+    return ("{\n" + bvg_content + btl_content + "}");
 }

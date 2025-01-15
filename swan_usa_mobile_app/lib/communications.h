@@ -16,5 +16,5 @@ public:
     void entry(string, string);
     void entry(string, int);
     void entry(string, double);
-    string genJson(string, string);
+    string genJson();
 };
